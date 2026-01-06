@@ -359,11 +359,12 @@ PhysGym opens several promising avenues:
 If you use PhysGym in your research, please cite:
 
 ```bibtex
-@article{chen2025physgym,
-  title={PhysGym: Benchmarking LLMs in Interactive Physics Discovery with Controlled Priors},
-  author={Chen, Yimeng and Pi\k{e}kos, Piotr and Ostaszewski, Mateusz and Laakom, Firas and Schmidhuber, J{\"u}rgen},
-  journal={arXiv preprint arXiv:2507.15550},
-  year={2025}
+@inproceedings{chen2025physgym,
+title={PhysGym: Benchmarking {LLM}s in Interactive Physics Discovery with Controlled Priors},
+author={Yimeng Chen and Piotr Pi{\k{e}}kos and Mateusz Ostaszewski and Firas Laakom and J{\"u}rgen Schmidhuber},
+booktitle={The Thirty-ninth Annual Conference on Neural Information Processing Systems Datasets and Benchmarks Track},
+year={2025},
+url={https://openreview.net/forum?id=w8uII2qAmd}
 }
 ```
 
