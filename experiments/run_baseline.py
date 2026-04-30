@@ -51,6 +51,10 @@ def parse_args():
                         help='Starting index for experiment range (default: 0)')
     parser.add_argument('--idx-end', type=int, default=None,
                         help='Ending index for experiment range (default: all experiments)')
+    parser.add_argument('--output-dir', type=str, default=None,
+                        help='Base output directory for results (overrides default history folder)')
+    parser.add_argument('--group-name', type=str, default="baseline",
+                        help='Group name for organizing experiments (default: "baseline")')
     return parser.parse_args()
 
 @dataclass
@@ -68,7 +72,8 @@ class ExperimentConfig:
     base_url: str = None  # Base URL for local LLM servers (optional)
     capture_thinking: bool = True
     verbose: bool = False
-    history_folder_template: str = "../histories/baseline/{mode}/{llm_model_slug}"  # Relative to experiments/
+    group_name: str = "baseline"  # For logging and organization
+    history_folder_template: str = "../histories/{group_name}/{mode}/{llm_model_slug}"  # Relative to experiments/
 
     def get_history_folder(self) -> str:
         """Generates the history folder path based on the LLM model and provider."""
@@ -254,6 +259,19 @@ def main(config: ExperimentConfig = None):
     exp = ResearchInterface(config.env_id, config.sample_quota, config.initial_test_quota, config.mode, history_file=history_file)
     print(f"Experiment initialized: {exp}")
 
+    # Restore best hypothesis state from any previously saved history (preemption resume)
+    if exp.tested_hypothesis:
+        best_hyp = max(exp.tested_hypothesis, key=lambda h: h["evaluation"].get("overall_score", 0.0))
+        run_state.best_hypothesis_info = {
+            "hypothesis": best_hyp.get("hypothesis_expr", best_hyp["function_code"]),
+            "score": best_hyp["evaluation"].get("overall_score", 0.0),
+            "function": best_hyp["function_code"],
+            "is_correct": best_hyp["evaluation"].get("is_correct", False)
+        }
+        print(f"Restored best hypothesis from {len(exp.tested_hypothesis)} previous test(s). "
+              f"Score: {run_state.best_hypothesis_info['score']:.4f}, "
+              f"Correct: {run_state.best_hypothesis_info['is_correct']}")
+
     # Initialize the baseline researcher
     researcher = BaselineResearcher(
         api_key=api_key,
@@ -279,13 +297,18 @@ def main(config: ExperimentConfig = None):
 
 if __name__ == "__main__":
     args = parse_args()
-    
+
     # Auto-detect provider if using default
     if args.api_provider is None:
         recommended = get_recommended_provider()
         args.api_provider = recommended
         print(f"Auto-detected LLM provider: {recommended}")
-    
+
+    history_folder_template = (
+        f"{args.output_dir}/{args.group_name}/{{mode}}/{{llm_model_slug}}"
+        if args.output_dir else None
+    )
+
     # Try local path first, will fallback to package path if not found
     sample_file = 'physgym/samples/full_samples.json'
     env_ids = load_sample_ids(sample_file)
@@ -295,21 +318,23 @@ if __name__ == "__main__":
             print(f"Error: Environment ID {args.env_id} not found in {sample_file}")
             sys.exit(1)
         print(f"Running experiment for environment ID: {args.env_id}")
-        
+
         # Create config with all arguments
         config = ExperimentConfig(
-            env_id=args.env_id, 
-            mode=args.mode, 
-            llm_model=args.llm_model, 
+            env_id=args.env_id,
+            mode=args.mode,
+            llm_model=args.llm_model,
             api_key_file=args.api_key_file,
             api_provider=args.api_provider,
             base_url=args.base_url,
             verbose=args.verbose,
             max_iterations=args.max_iterations or 20,
             sample_quota=args.sample_quota or 100,
-            experiments_per_iteration=args.experiments_per_iteration or 20
+            experiments_per_iteration=args.experiments_per_iteration or 20,
+            group_name=args.group_name,
+            **({"history_folder_template": history_folder_template} if history_folder_template else {})
         )
-        
+
         results = main(config=config)
         print(f"Results for environment ID {args.env_id}: {results}")
     else:
@@ -317,25 +342,26 @@ if __name__ == "__main__":
         # Determine the index range
         total_envs = len(env_ids)
         start_idx = args.idx_start
-        end_idx = args.idx_end if args.idx_end is not None else total_envs            
+        end_idx = args.idx_end if args.idx_end is not None else total_envs
         print(f"Running experiments for indices {start_idx} to {end_idx-1} (total: {end_idx-start_idx} environments)")
         idx_range = range(start_idx, end_idx)
         for idx in idx_range:
             env_id = env_ids[idx]
             print(f"\nRunning experiment for environment ID: {env_id}")
-            
+
             # Create config with all arguments
             config = ExperimentConfig(
-                env_id=env_id, 
-                mode=args.mode, 
-                llm_model=args.llm_model, 
+                env_id=env_id,
+                mode=args.mode,
+                llm_model=args.llm_model,
                 api_key_file=args.api_key_file,
                 api_provider=args.api_provider,
                 base_url=args.base_url,
                 verbose=args.verbose,
                 max_iterations=args.max_iterations or 20,
                 sample_quota=args.sample_quota or 100,
-                experiments_per_iteration=args.experiments_per_iteration or 20
+                experiments_per_iteration=args.experiments_per_iteration or 20,
+                **({"history_folder_template": history_folder_template} if history_folder_template else {})
             )
             
             results_file = f"{config.get_history_folder()}/experiment_{env_id}_results.json"

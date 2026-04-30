@@ -176,13 +176,19 @@ class BaselineResearcher:
         
         # Extract test hypothesis flag
         if "test_hypothesis_flag" in text.lower():
-            output["test_hypothesis_flag"] = "true" in text.lower().split("test_hypothesis_flag")[1].split("\n")[0]
+            try:
+                output["test_hypothesis_flag"] = "true" in text.lower().split("test_hypothesis_flag")[1].split("\n")[0]
+            except Exception:
+                pass
         
         # Extract current hypothesis formula
         if "current_hypothesis_formula" in text.lower():
-            formula_section = text.split("current_hypothesis_formula")[1].split("\n")[0]
-            formula = formula_section.split(":")[1].strip().strip('"').strip("'").strip(",")
-            output["current_hypothesis_formula"] = formula
+            try:
+                formula_section = text.split("current_hypothesis_formula")[1].split("\n")[0]
+                formula = formula_section.split(":")[1].strip().strip('"').strip("'").strip(",")
+                output["current_hypothesis_formula"] = formula
+            except Exception:
+                pass
         
         return output
     

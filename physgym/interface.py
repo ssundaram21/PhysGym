@@ -161,7 +161,7 @@ class ResearchInterface:
                             except json.JSONDecodeError:
                                 continue
                     
-                    self.samples_used = len(self.observations)
+                    self.samples_used = sum(1 for obs in self.observations if "sample_id" in obs)
                     print(f"Loaded {self.samples_used} existing observations from {jsonl_file}")
             
             except:
@@ -358,6 +358,7 @@ class ResearchInterface:
         hypothesis_record = {
             "timestamp": datetime.datetime.now().isoformat(),
             "hypothesis_id": len(self.tested_hypothesis) + 1,
+            "hypothesis_expr": candidate_expr,
             "function_code": candidate_function,
             "evaluation": evaluation,
             "num_observations": len(self.observations)
@@ -518,6 +519,7 @@ def hypothesis_function({', '.join(input_params)}):
         """
         Save the observation history to a JSONL file to properly handle boolean variables.
         Each line in the file contains a single JSON record.
+        Writes atomically via a temp file to avoid corruption on preemption.
         """
         if not self.history_file:
             return
@@ -525,21 +527,23 @@ def hypothesis_function({', '.join(input_params)}):
             # Get base filename without extension
             base_filename = self.history_file.rsplit('.', 1)[0] if '.' in self.history_file else self.history_file
             jsonl_file = f"{base_filename}.jsonl"
-            
-            with open(jsonl_file, 'w') as f:
+            tmp_file = f"{jsonl_file}.tmp"
+
+            with open(tmp_file, 'w') as f:
                 # Write metadata as first line
                 f.write(json.dumps({"type": "metadata", "data": self.metadata}) + '\n')
-                
+
                 # Write each observation as a separate line
                 for obs in self.observations:
                     f.write(json.dumps({"type": "observation", "data": obs}) + '\n')
-                
+
                 # Write each hypothesis record as a separate line
                 for hyp in self.tested_hypothesis:
                     f.write(json.dumps({"type": "hypothesis", "data": hyp}) + '\n')
-                
+
+            os.replace(tmp_file, jsonl_file)
             print(f"History saved to {jsonl_file}")
-                
+
         except:
             raise ValueError(f"Failed to save history to {jsonl_file}.")
     
