@@ -162,7 +162,7 @@ def evaluate_hypothesis_fit(hypothesis_func: Callable, observations: List[Dict[s
             except Exception as e:
                 print(f"Error during hypothesis function execution: {e}")
                 continue
-            if np.isnan(predicted) or np.isinf(predicted):
+            if np.iscomplex(predicted) or np.isnan(predicted) or np.isinf(predicted):
                 continue
             # Add to comparison arrays
             y_true.append(obs['output'])
