@@ -277,7 +277,8 @@ def main(config: ExperimentConfig = None):
         api_key=api_key,
         model=config.llm_model,
         env_file=config.api_key_file,
-        provider=config.api_provider
+        provider=config.api_provider,
+        base_url=config.base_url
     )
     print(f"BaselineResearcher initialized - Provider: {config.api_provider}, Model: {config.llm_model}")
 

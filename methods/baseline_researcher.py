@@ -12,24 +12,27 @@ class BaselineResearcher:
     propose hypotheses, and design new experiments using the OpenRouter API.
     """
     
-    def __init__(self, 
-                 api_key: Optional[str] = None, 
-                 model: str = "google/gemini-2.5-flash-preview", 
+    def __init__(self,
+                 api_key: Optional[str] = None,
+                 model: str = "google/gemini-2.5-flash-preview",
                  env_file: str = "api_keys.env",
-                 provider: Optional[str] = None):
+                 provider: Optional[str] = None,
+                 base_url: Optional[str] = None):
         """
         Initialize the BaselineResearcher.
-        
+
         Args:
             api_key: API key. If None, it will be loaded from env_file for remote providers.
             model: Model name to use.
             env_file: Path to the environment file containing the API key.
             provider: LLM provider to use (ollama, vllm, openrouter, etc.). If None, auto-detected.
+            base_url: Base URL for local LLM servers (e.g., http://localhost:8002).
         """
         self.env_file = env_file
         self.provider = provider or get_recommended_provider()
         self.model = model
         self.api_key = api_key  # May be None for local providers
+        self.base_url = base_url
         print(f"Using LLM provider: {self.provider} with model: {self.model}")
         
         # Load the prompt template - find it relative to this file
@@ -104,6 +107,7 @@ class BaselineResearcher:
             system_message=system_message,
             temperature=0.2,
             api_key=self.api_key,
+            base_url=self.base_url,
             env_file=self.env_file,
             capture_thinking=capture_thinking
         )
