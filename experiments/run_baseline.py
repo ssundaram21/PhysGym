@@ -179,7 +179,7 @@ def run_experiment_iterations(
         )
 
         # Select experiments to run based on available quota for this iteration
-        experiments_to_run_now = proposed_experiments[:config.experiments_per_iteration]
+        experiments_to_run_now = proposed_experiments[:min(config.experiments_per_iteration, exp.get_remaining_quota())]
 
         if not experiments_to_run_now:
             if exp.get_remaining_quota() > 0 : # Only break if no proposals AND quota left (otherwise loop terminates naturally)

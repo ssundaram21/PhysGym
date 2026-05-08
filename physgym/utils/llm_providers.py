@@ -27,8 +27,8 @@ class LLMConfig:
     api_key: Optional[str] = None          # API key (if required)
     base_url: Optional[str] = None         # Base URL for API
     temperature: float = 0.3               # Temperature for generation
-    max_tokens: int = 4000                 # Maximum tokens to generate
-    timeout: int = 60                      # Request timeout in seconds
+    max_tokens: int = 12000                 # Maximum tokens to generate
+    timeout: int = 120                      # Request timeout in seconds
     extra_params: Optional[Dict] = None    # Additional provider-specific parameters
 
 
@@ -206,8 +206,8 @@ class vLLMProvider(BaseLLMProvider):
             response.raise_for_status()
             
             result = response.json()
-            content = result["choices"][0]["message"]["content"]
-            
+            content = result["choices"][0]["message"]["content"] or ""
+
             if capture_thinking:
                 thinking_data = {
                     "raw_thinking": "",  # vLLM doesn't provide thinking by default
@@ -557,7 +557,7 @@ def load_llm_config_from_env(
         provider=provider,
         model=model,
         temperature=float(os.getenv("LLM_TEMPERATURE", "0.3")),
-        max_tokens=int(os.getenv("LLM_MAX_TOKENS", "4000")),
+        max_tokens=int(os.getenv("LLM_MAX_TOKENS", "12000")),
         timeout=int(os.getenv("LLM_TIMEOUT", "60"))
     )
     
@@ -588,7 +588,7 @@ def generate_with_provider(
     model: str = None,
     system_message: str = "You are a helpful assistant.",
     temperature: float = 0.3,
-    max_tokens: int = 4000,
+    max_tokens: int = 12000,
     capture_thinking: bool = False,
     api_key: str = None,
     base_url: str = None,
@@ -629,7 +629,7 @@ def generate_with_provider(
         config.base_url = base_url
     if temperature != 0.3:
         config.temperature = temperature
-    if max_tokens != 4000:
+    if max_tokens != 12000:
         config.max_tokens = max_tokens
     
     # Create provider and generate

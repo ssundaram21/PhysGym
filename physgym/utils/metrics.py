@@ -237,7 +237,7 @@ def evaluate_hypothesis_fit(hypothesis_func: Callable, observations: List[Dict[s
 
 
 def check_function_equivalence_llm(func1_str: str, func2_str: str, 
-                                   model: str = "google/gemini-2.5-flash",
+                                   model: str = "gpt-5.4-mini-2026-03-17",
                                    provider: Optional[str] = None) -> Dict[str, Any]:
     """
     Check if two function strings are mathematically equivalent using LLM as a judge.
@@ -417,7 +417,7 @@ def evaluate_hypothesis(hypothesis_function: str, true_func_str: str, hyp_expr: 
     if need_llm:
         # Check equivalence using LLM
         equiv_metrics = check_function_equivalence_llm(
-            true_expr, hyp_expr, model="google/gemini-2.5-flash", provider="openrouter"
+            true_expr, hyp_expr, model="gpt-5.4-mini-2026-03-17", provider="openai"
         )
         symbolically_equivalent = equiv_metrics.get("is_equivalent", False)
         symbolically_equivalent = bool(symbolically_equivalent)

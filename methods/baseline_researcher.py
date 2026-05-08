@@ -111,7 +111,6 @@ class BaselineResearcher:
             env_file=self.env_file,
             capture_thinking=capture_thinking
         )
-        
         # Extract JSON output from the response
         try:
             # Find JSON in the response (might be surrounded by text)
