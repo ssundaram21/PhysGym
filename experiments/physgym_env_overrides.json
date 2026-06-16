@@ -1,0 +1,24 @@
+{
+  "_doc": "Per-env sampling overrides for PhysGymWorldAdapter. '_overrides' maps variable names (in the env's ORIGINAL — non-anonymous — namespace) to per-variable sampling spec. Each spec has: dtype ('int'|'float'), value_range [lo, hi], and optional log_uniform. For log_uniform=True on a negative-bounded range, magnitude is log-uniform between |lo| and |hi| and the sign is applied. Envs whose python_code constraints are unsatisfiable (e.g. env 284, where delta_n>0 AND sin(theta)>1+delta_n/n cannot both hold) are NOT excluded here — they will surface as sample_input failures during eval, which is the honest signal that the dataset has a bug.",
+
+  "457": {
+    "_reason": "N is the number of polygon sides; env_function rejects non-integer N.",
+    "_overrides": {
+      "N": {"dtype": "int", "value_range": [3, 12]}
+    }
+  },
+
+  "709": {
+    "_reason": "m is the standing-wave mode order; env_function rejects non-integer m.",
+    "_overrides": {
+      "m": {"dtype": "int", "value_range": [1, 8]}
+    }
+  },
+
+  "443": {
+    "_reason": "epsilon_21 is a metal permittivity (must be negative).",
+    "_overrides": {
+      "epsilon_21": {"dtype": "float", "value_range": [-100.0, -0.01], "log_uniform": true}
+    }
+  }
+}
