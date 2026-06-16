@@ -253,7 +253,7 @@ def check_function_equivalence_llm(func1_str: str, func2_str: str,
         Dictionary with equivalence metrics including LLM judgment
     """
     print("Checking function equivalence using LLM...")
-    
+        
     # Extract function bodies, stripping out function declaration and other non-essential parts
     def extract_function_body(func_str, is_return=True):
         if is_return:
